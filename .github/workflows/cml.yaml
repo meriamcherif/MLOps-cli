@@ -6,13 +6,24 @@ jobs:
     container: docker://dvcorg/cml-py3:latest
     steps:
       - uses: actions/checkout@v2
-      - name: cml_run
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+
+      - name: Create and activate virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run ML workflow
         env:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          /usr/bin/python3 -m pip install --upgrade pip
-          # Your ML workflow goes here
-          pip install -r requirements.txt
           python train.py
           
           echo "## Model metrics" > report.md
