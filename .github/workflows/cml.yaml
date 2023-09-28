@@ -2,13 +2,35 @@ name: model-wine-quality
 on: [push]
 jobs:
   run:
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest]
     container: docker://dvcorg/cml-py3:latest
     steps:
-      - uses: actions/checkout@v3
-      - name: cml_run
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+
+      - name: Create and activate virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run ML workflow
         env:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          run: 
-            pip install -r requirements.txt
-            python train.py
+        run: |
+          source venv/bin/activate
+          python train.py
+          
+          echo "## Model metrics" > report.md
+          cat metrics.txt >> report.md
+          
+          echo "## Data viz" >> report.md
+          cml-publish feature_importance.png --md >> report.md
+          cml-publish residuals.png --md >> report.md
+          
+          cml-send-comment report.md
+
