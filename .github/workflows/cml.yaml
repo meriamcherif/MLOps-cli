@@ -18,12 +18,14 @@ jobs:
 
       - name: Install dependencies
         run: |
+          source venv/bin/activate  # Activer l'environnement virtuel
           pip install -r requirements.txt
 
       - name: Run ML workflow
         env:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          source venv/bin/activate  # Activer l'environnement virtuel
           python train.py
           
           echo "## Model metrics" > report.md
@@ -34,3 +36,4 @@ jobs:
           cml-publish residuals.png --md >> report.md
           
           cml-send-comment report.md
+
